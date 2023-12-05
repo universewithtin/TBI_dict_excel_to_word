@@ -52,7 +52,7 @@ def run_set_spacing(run, value: int):
 
 
 # Load the Excel file. LOCAL VERSION, not TG
-workbook = load_workbook('test.xlsx')
+workbook = load_workbook('test.xlsx', data_only=True)
 sheet = workbook.active
 
 # Create a Word document
