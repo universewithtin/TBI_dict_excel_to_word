@@ -4,8 +4,31 @@ from docx.shared import Pt
 from docx.enum.text import WD_PARAGRAPH_ALIGNMENT
 from docx.oxml.ns import qn
 from docx.oxml.shared import OxmlElement
+import time
+import re
 
-# Python-docx does not support font spacing, so here we go, using StackOverflow code
+workbook = load_workbook('test.xlsx', data_only=True)
+sheet = workbook.active
+
+doc = Document()
+doc.styles['Normal'].font.name = 'Times New Roman'
+doc.styles['Normal'].font.size = Pt(14)
+
+def clean_end_of_line(text, add_dot=True):
+    if add_dot_space:
+        text = re.sub(r'[. ]*$', '', text)
+        if text.endswith('?'):
+            text += ' '
+        elif text.endswith(';'):
+            text = text[:-1] + '. '
+        else:
+            text += '. '
+    else:
+        text = re.sub(r'[. ]*$', '', text)
+        text += ' '
+    return text
+
+
 def run_set_spacing(run, value: int):
     """Set the font spacing for `run` to `value` in twips.
 
@@ -49,18 +72,9 @@ def run_set_spacing(run, value: int):
     rPr = run._r.get_or_add_rPr()
     spacing = get_or_add_spacing(rPr)
     spacing.set(qn('w:val'), str(value))
-
-
-# Load the Excel file. LOCAL VERSION, not TG
-workbook = load_workbook('test.xlsx', data_only=True)
-sheet = workbook.active
-
-# Create a Word document
-doc = Document()
-doc.styles['Normal'].font.name = 'Times New Roman'
-doc.styles['Normal'].font.size = Pt(14)
     
 # Iterate through rows in Excel and add to the Word document
+start_time = time.time()
 if __name__ == '__main__':
 	table = doc.add_table(rows=1, cols=1)
 	table.style = 'Table Grid'
@@ -76,24 +90,28 @@ if __name__ == '__main__':
 	    paragraph.alignment = WD_PARAGRAPH_ALIGNMENT.JUSTIFY
 	
 	    for i, cell_value in enumerate(row):
-	        run = paragraph.add_run(str(cell_value))
+	        cell_value = cell_value if cell_value is not None else ""
+	        if i == 2:
+	            capitalized_value = str(cell_value).capitalize()
+	        else:
+	            capitalized_value = str(cell_value)
+
+	        run = paragraph.add_run(capitalized_value)
 		        
 	        if i == 0:
+	            clean_end_of_line(text, add_dot=False)
 	            run.font.bold = True
-	            run.font.all_caps = True
-	            if not str(cell_value).endswith(' '):
-	                run.text += ' '  
+	            run.font.all_caps = True  
 	        elif i == 1:
-	            if not str(cell_value).endswith(' '):
-	                run.text += ' '  
+	            clean_end_of_line(text, add_dot=True)
 	            run_set_spacing(run, 60)
 	        elif i == 2:
-	            run.italic = True
-	            if not str(cell_value).endswith('.'):
-	                run.text += '. '  
+	            clean_end_of_line(text, add_dot=True)
+	            run.italic = True 
 	        else:
-	            if not str(cell_value).endswith(' '):
-	                run.text += ' ' 
+	            clean_end_of_line(text, add_dot=False)
 
-# LOCAL VERSION, not sending name here yet. 
 doc.save('test.docx')
+end_time = time.time()
+execution_time = round(end_time - start_time, 2)
+print(f"Скрипт жұмысы(парсинг, компиляция): {execution_time} секунд")
