@@ -13,6 +13,7 @@ from tkinter import filedialog
 file_extension = ".xlsx"
 
 def clean_end_of_line(text, add_dot=True):
+    text = re.sub(r'^[. ]*', '', text)
     text = re.sub(r'[. ]*$', '', text)
     if add_dot:
         if text.endswith('?'):
