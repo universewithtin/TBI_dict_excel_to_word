@@ -96,12 +96,12 @@ def main(filename):
 	    paragraph.alignment = WD_PARAGRAPH_ALIGNMENT.JUSTIFY
 	
 	    for i, cell_value in enumerate(row):
-	        if i == 1 or i == 2:
+	        cell_value = cell_value if cell_value is not None else ""
+	        if i == 1 or i == 2 or i == 4:
 	            cell_value = clean_end_of_line(str(cell_value), add_dot=True)
 	        else:
 	            cell_value = clean_end_of_line(str(cell_value), add_dot=False)
-
-	        cell_value = cell_value if cell_value is not None else ""
+	        
 	        if i == 2:
 	            capitalized_value = str(cell_value).capitalize()
 	        else:
