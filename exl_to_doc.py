@@ -6,17 +6,13 @@ from docx.oxml.ns import qn
 from docx.oxml.shared import OxmlElement
 import time
 import re
+import sys
 
-workbook = load_workbook('test.xlsx', data_only=True)
-sheet = workbook.active
-
-doc = Document()
-doc.styles['Normal'].font.name = 'Times New Roman'
-doc.styles['Normal'].font.size = Pt(14)
+file_extension = ".xlsx"
 
 def clean_end_of_line(text, add_dot=True):
-    if add_dot_space:
-        text = re.sub(r'[. ]*$', '', text)
+    text = re.sub(r'[. ]*$', '', text)
+    if add_dot:
         if text.endswith('?'):
             text += ' '
         elif text.endswith(';'):
@@ -24,7 +20,6 @@ def clean_end_of_line(text, add_dot=True):
         else:
             text += '. '
     else:
-        text = re.sub(r'[. ]*$', '', text)
         text += ' '
     return text
 
@@ -73,9 +68,18 @@ def run_set_spacing(run, value: int):
     spacing = get_or_add_spacing(rPr)
     spacing.set(qn('w:val'), str(value))
     
+    
 # Iterate through rows in Excel and add to the Word document
-start_time = time.time()
-if __name__ == '__main__':
+def main(filename):
+	start_time = time.time()
+	workbook = load_workbook(filename, data_only=True)
+	sheet = workbook.active
+
+	doc = Document()
+	doc.styles['Normal'].font.name = 'Times New Roman'
+	doc.styles['Normal'].font.size = Pt(14)
+
+	
 	table = doc.add_table(rows=1, cols=1)
 	table.style = 'Table Grid'
 	cell = table.cell(0, 0)
@@ -90,28 +94,40 @@ if __name__ == '__main__':
 	    paragraph.alignment = WD_PARAGRAPH_ALIGNMENT.JUSTIFY
 	
 	    for i, cell_value in enumerate(row):
+	        if i == 1 or i == 2:
+	            cell_value = clean_end_of_line(str(cell_value), add_dot=True)
+	        else:
+	            cell_value = clean_end_of_line(str(cell_value), add_dot=False)
+
 	        cell_value = cell_value if cell_value is not None else ""
 	        if i == 2:
 	            capitalized_value = str(cell_value).capitalize()
 	        else:
 	            capitalized_value = str(cell_value)
-
+	           
 	        run = paragraph.add_run(capitalized_value)
-		        
+
+	        		        
 	        if i == 0:
-	            clean_end_of_line(text, add_dot=False)
 	            run.font.bold = True
 	            run.font.all_caps = True  
 	        elif i == 1:
-	            clean_end_of_line(text, add_dot=True)
 	            run_set_spacing(run, 60)
 	        elif i == 2:
-	            clean_end_of_line(text, add_dot=True)
 	            run.italic = True 
-	        else:
-	            clean_end_of_line(text, add_dot=False)
 
-doc.save('test.docx')
-end_time = time.time()
-execution_time = round(end_time - start_time, 2)
-print(f"Скрипт жұмысы(парсинг, компиляция): {execution_time} секунд")
+	          
+
+	doc.save(filename.replace(file_extension, ".docx"))
+	end_time = time.time()
+	execution_time = round(end_time - start_time, 2)
+	print(f"Скрипт жұмысы(парсинг, компиляция): {execution_time} секунд")
+	
+	
+if __name__ == "__main__":
+    if len(sys.argv) > 1:
+        filename = sys.argv[1]
+        print(f"Processing: {filename}")
+        main(filename)
+    else:
+        print("Give some XLSX file")
