@@ -7,6 +7,8 @@ from docx.oxml.shared import OxmlElement
 import time
 import re
 import sys
+import tkinter as tk
+from tkinter import filedialog
 
 file_extension = ".xlsx"
 
@@ -127,7 +129,10 @@ def main(filename):
 if __name__ == "__main__":
     if len(sys.argv) > 1:
         filename = sys.argv[1]
-        print(f"Processing: {filename}")
+        print(f"{filename} файлы қабылданды")
         main(filename)
     else:
-        print("Give some XLSX file")
+        filename = filedialog.askopenfilename(filetypes=[("Excel files", "*.xlsx")])
+        if filename:
+            print(f"{filename} файлы қабылданды")
+            main(filename)
