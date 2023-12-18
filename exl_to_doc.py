@@ -70,63 +70,81 @@ def run_set_spacing(run, value: int):
     rPr = run._r.get_or_add_rPr()
     spacing = get_or_add_spacing(rPr)
     spacing.set(qn('w:val'), str(value))
-    
+
+
     
 # Iterate through rows in Excel and add to the Word document
 def main(filename):
-	start_time = time.time()
-	workbook = load_workbook(filename, data_only=True)
-	sheet = workbook.active
+    start_time = time.time()
+    workbook = load_workbook(filename, data_only=True)
+    sheet = workbook.active
 
-	doc = Document()
-	doc.styles['Normal'].font.name = 'Times New Roman'
-	doc.styles['Normal'].font.size = Pt(14)
+    doc = Document()
+    doc.styles['Normal'].font.name = 'Times New Roman'
+    doc.styles['Normal'].font.size = Pt(14)
 
-	
-	table = doc.add_table(rows=1, cols=1)
-	table.style = 'Table Grid'
-	cell = table.cell(0, 0)
-	cell.text = str(sheet['B1'].value)
-	cell.paragraphs[0].alignment = WD_PARAGRAPH_ALIGNMENT.JUSTIFY
-	doc.add_paragraph()
-	
-	for row in sheet.iter_rows(min_row=3, values_only=True):
-	    if row[0] is None:
-	        continue
-	    paragraph = doc.add_paragraph()
-	    paragraph.alignment = WD_PARAGRAPH_ALIGNMENT.JUSTIFY
-	
-	    for i, cell_value in enumerate(row):
-	        cell_value = cell_value if cell_value is not None else ""
-	        if i == 1 or i == 2 or i == 4:
-	            cell_value = clean_end_of_line(str(cell_value), add_dot=True)
-	        else:
-	            cell_value = clean_end_of_line(str(cell_value), add_dot=False)
-	        
-	        if i == 2:
-	            capitalized_value = str(cell_value).capitalize()
-	        else:
-	            capitalized_value = str(cell_value)
-	           
-	        run = paragraph.add_run(capitalized_value)
+    
+    table = doc.add_table(rows=1, cols=1)
+    table.style = 'Table Grid'
+    cell = table.cell(0, 0)
+    cell.text = str(sheet['B1'].value)
+    cell.paragraphs[0].alignment = WD_PARAGRAPH_ALIGNMENT.JUSTIFY
+    doc.add_paragraph()
+    
+    for row in sheet.iter_rows(min_row=3, values_only=True):
+        if row[0] is None:
+            continue
+        paragraph = doc.add_paragraph()
+        paragraph.alignment = WD_PARAGRAPH_ALIGNMENT.JUSTIFY
 
-	        		        
-	        if i == 0:
-	            run.font.bold = True
-	            run.font.all_caps = True  
-	        elif i == 1:
-	            run_set_spacing(run, 60)
-	        elif i == 2:
-	            run.italic = True 
+        for i, cell_value in enumerate(row):
+            text = clean_end_of_line(str(cell_value), add_dot=False) #cheat route to avoid duplication
+            if i == 0:
+                cell_value = ""
+            cell_value = cell_value if cell_value is not None else ""
+            if i == 1 or i == 2 or i == 4:
+                cell_value = clean_end_of_line(str(cell_value), add_dot=True)
+            else:
+                cell_value = clean_end_of_line(str(cell_value), add_dot=False)
+            
+            if i == 2:
+                capitalized_value = str(cell_value).capitalize()
+            else:
+                capitalized_value = str(cell_value)
+               
+            run = paragraph.add_run(capitalized_value)
 
-	          
+                    
+            if i == 0: #make this ugly mf a separate function
+                pattern_one = "немесе"
+                pattern_two = "және"
+                if pattern_one in text:
+                    parts = text.split(pattern_one)
+                    paragraph.add_run(parts[0].upper()).bold = True
+                    paragraph.add_run(pattern_one.lower())
+                    paragraph.add_run(parts[1].upper()).bold = True
+                elif pattern_two in text:
+                    parts = text.split(pattern_two)
+                    paragraph.add_run(parts[0].upper()).bold = True
+                    paragraph.add_run(pattern_two.lower())
+                    paragraph.add_run(parts[1].upper()).bold = True
+                else:
+                    run = paragraph.add_run(text)
+                    run.font.bold = True
+                    run.font.all_caps = True  
+            elif i == 1:
+                run_set_spacing(run, 60)
+            elif i == 2:
+                run.italic = True 
 
-	doc.save(filename.replace(file_extension, ".docx"))
-	end_time = time.time()
-	execution_time = round(end_time - start_time, 2)
-	print(f"Скрипт жұмысы(парсинг, компиляция): {execution_time} секунд")
-	
-	
+              
+
+    doc.save(filename.replace(file_extension, ".docx"))
+    end_time = time.time()
+    execution_time = round(end_time - start_time, 2)
+    print(f"Скрипт жұмысы(парсинг, компиляция): {execution_time} секунд")
+    
+    
 if __name__ == "__main__":
     if len(sys.argv) > 1:
         filename = sys.argv[1]
