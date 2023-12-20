@@ -88,7 +88,9 @@ def main(filename):
     table.style = 'Table Grid'
     cell = table.cell(0, 0)
     cell.text = str(sheet['B1'].value)
+    rc = cell.paragraphs[0].runs[0]
     cell.paragraphs[0].alignment = WD_PARAGRAPH_ALIGNMENT.JUSTIFY
+    rc.font.bold = True
     doc.add_paragraph()
     
     for row in sheet.iter_rows(min_row=3, values_only=True):
@@ -98,11 +100,14 @@ def main(filename):
         paragraph.alignment = WD_PARAGRAPH_ALIGNMENT.JUSTIFY
 
         for i, cell_value in enumerate(row):
-            text = clean_end_of_line(str(cell_value), add_dot=False) #cheat route to avoid duplication
+            text = clean_end_of_line(str(cell_value), add_dot=True) #cheat route to avoid duplication
             if i == 0:
                 cell_value = ""
             cell_value = cell_value if cell_value is not None else ""
-            if i == 1 or i == 2 or i == 4:
+
+            if i == 0:
+                pass
+            elif i == 1 or i == 2 or i == 4:
                 cell_value = clean_end_of_line(str(cell_value), add_dot=True)
             else:
                 cell_value = clean_end_of_line(str(cell_value), add_dot=False)
@@ -120,18 +125,18 @@ def main(filename):
                 pattern_two = "және"
                 if pattern_one in text:
                     parts = text.split(pattern_one)
-                    paragraph.add_run(parts[0].upper()).bold = True
+                    paragraph.add_run(parts[0].capitalize()).bold = True
                     paragraph.add_run(pattern_one.lower())
-                    paragraph.add_run(parts[1].upper()).bold = True
+                    paragraph.add_run(parts[1].lower()).bold = True
                 elif pattern_two in text:
                     parts = text.split(pattern_two)
-                    paragraph.add_run(parts[0].upper()).bold = True
+                    paragraph.add_run(parts[0].capitalize()).bold = True
                     paragraph.add_run(pattern_two.lower())
-                    paragraph.add_run(parts[1].upper()).bold = True
+                    paragraph.add_run(parts[1].lower()).bold = True
                 else:
-                    run = paragraph.add_run(text)
+                    run = paragraph.add_run(text.capitalize())
                     run.font.bold = True
-                    run.font.all_caps = True  
+                    run.font.all_caps = False  
             elif i == 1:
                 run_set_spacing(run, 60)
             elif i == 2:
